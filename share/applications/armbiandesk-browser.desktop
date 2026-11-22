@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=ArmbianDesk Browser
+GenericName=Web Browser
+Comment=Launch Chromium in ArmbianDesk session
+Exec=/usr/local/bin/armbiandesk browser %u
+Icon=web-browser
+Terminal=false
+Categories=Network;WebBrowser;
+StartupNotify=true
+StartupWMClass=ArmbianDeskBrowser
+MimeType=text/html;x-scheme-handler/http;x-scheme-handler/https;

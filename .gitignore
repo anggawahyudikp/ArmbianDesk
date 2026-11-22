@@ -1,0 +1,24 @@
+# Build, image, and release outputs
+build/
+dist/
+out/
+*.img
+*.img.gz
+*.img.xz
+*.zip
+*.sha256
+
+# Local benchmark, test, and runtime artifacts
+*.log
+*.tmp
+.pytest_cache/
+__pycache__/
+tests/tmp/
+benchmarks/
+
+# Never track local user profiles, backups, or secrets
+.env
+*.pem
+*.key
+*.bin
+chromium-profile/

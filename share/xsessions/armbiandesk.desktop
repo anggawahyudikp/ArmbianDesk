@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=ArmbianDesk
+Comment=Lightweight browser-focused X11 desktop session for Armbian
+Exec=/usr/local/bin/armbiandesk session
+TryExec=/usr/local/bin/armbiandesk
+Type=Application
+DesktopNames=ArmbianDesk

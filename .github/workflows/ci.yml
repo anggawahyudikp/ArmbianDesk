@@ -1,0 +1,17 @@
+name: ArmbianDesk CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install CI validation tools
+        run: sudo apt-get update && sudo apt-get install -y shellcheck zip unzip
+      - name: Run ArmbianDesk automated test suite
+        run: ./tests/run-all.sh

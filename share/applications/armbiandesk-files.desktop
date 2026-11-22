@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=ArmbianDesk Files
+GenericName=File Manager
+Comment=Open lightweight file manager
+Exec=/usr/local/bin/armbiandesk files %F
+Icon=system-file-manager
+Terminal=false
+Categories=System;FileManager;
+StartupNotify=true

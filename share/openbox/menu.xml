@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openbox_menu xmlns="http://openbox.org/3.4/menu">
+  <menu id="armbiandesk-root-menu" label="ArmbianDesk">
+    <item label="Browser">
+      <action name="Execute">
+        <command>/usr/local/bin/armbiandesk browser</command>
+      </action>
+    </item>
+    <item label="Files">
+      <action name="Execute">
+        <command>/usr/local/bin/armbiandesk files</command>
+      </action>
+    </item>
+    <item label="Terminal">
+      <action name="Execute">
+        <command>x-terminal-emulator</command>
+      </action>
+    </item>
+    <separator/>
+    <item label="Log Out">
+      <action name="Execute">
+        <command>/usr/local/bin/armbiandesk power logout</command>
+      </action>
+    </item>
+    <item label="Reboot...">
+      <action name="Execute">
+        <command>/usr/local/bin/armbiandesk power reboot</command>
+      </action>
+    </item>
+    <item label="Power Off...">
+      <action name="Execute">
+        <command>/usr/local/bin/armbiandesk power shutdown</command>
+      </action>
+    </item>
+  </menu>
+</openbox_menu>

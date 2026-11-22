@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+usage() {
+    cat <<'EOF'
+ArmbianDesk Bootable Flashdisk & Image Toolkit
+
+Usage:
+  armbiandesk-image build [OPTIONS]     Build bootable ARM64 .img from scratch (debootstrap + kernel/U-Boot + ArmbianDesk)
+  armbiandesk-image flash [OPTIONS]     Safely write .img/.img.xz to a removable USB flashdisk and verify SHA-256
+  armbiandesk-image verify-boot [DIR]   Verify U-Boot .scr/.cmd pairs
+  armbiandesk-image b860h-prep [ARGS]   Optional B860H U-Boot env USB-first-boot patcher (experimental; read docs first)
+EOF
+}
+
+sub="${1:-}"
+shift || true
+
+case "$sub" in
+    build) exec "$SELF_DIR/tools/build-image.sh" "$@" ;;
+    flash) exec "$SELF_DIR/tools/flash-usb.sh" "$@" ;;
+    verify-boot) exec python3 "$SELF_DIR/tools/b860h-usb-prep/verify-boot-assets.py" "$@" ;;
+    b860h-prep) exec python3 "$SELF_DIR/tools/b860h-usb-prep/b860h-usb-first-boot.py" "$@" ;;
+    -h|--help|"") usage ;;
+    *) echo "Unknown subcommand: $sub" >&2; exit 2 ;;
+esac

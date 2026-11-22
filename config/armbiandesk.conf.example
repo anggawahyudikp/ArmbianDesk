@@ -1,0 +1,28 @@
+# ArmbianDesk configuration: DATA, never source/eval as shell.
+# User/UID/home are discovered from explicit --user during installation.
+# No default passwords, real accounts, private domains or network configuration.
+
+PROFILE=minimal
+START_URL=https://example.org/
+BROWSER_AUTOSTART=true
+BROWSER_BINARY=auto
+BROWSER_COMPATIBILITY=standard
+LANGUAGE=en_US.UTF-8
+DISPLAY_MODE=auto
+KEEP_AWAKE=true
+DOCK_AUTOHIDE=true
+DOCK_ZOOM=false
+ENABLE_COMPOSITOR=false
+STARTUP_SOUND=false
+
+# Semantics for v0.1:
+# PROFILE: minimal | desktop. Desktop enables top panel + one bottom dock.
+# START_URL: one HTTP/HTTPS URL; empty means no page is opened automatically.
+# BROWSER_BINARY: auto or an absolute executable path validated by ArmbianDesk.
+# BROWSER_COMPATIBILITY: standard | software-rendering (explicit opt-in).
+# DISPLAY_MODE: auto or a validated mode (e.g. 1280x720) supported by the connected display.
+# Booleans: literal true or false. Unknown or duplicate keys are rejected.
+# Locale applies to the project session, not all users of the operating system.
+# Auto-login is deliberately configured through the installer CLI, not here.
+# Optional visual features are disabled; enabling unsupported features errors
+# clearly instead of silently spawning extra services.

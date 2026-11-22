@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+if [ -d "$SELF_DIR/lib" ]; then
+    AD_LIB_DIR="$SELF_DIR/lib"
+    AD_BIN_PATH="$SELF_DIR/bin/armbiandesk"
+elif [ -d "/usr/local/share/armbiandesk/lib" ]; then
+    AD_LIB_DIR="/usr/local/share/armbiandesk/lib"
+    AD_BIN_PATH="/usr/local/bin/armbiandesk"
+else
+    echo "armbiandesk: cannot locate lib directory" >&2
+    exit 1
+fi
+
+export ARMBIANDESK_BIN="$AD_BIN_PATH"
+
+# shellcheck source=../lib/common.sh
+source "$AD_LIB_DIR/common.sh"
+# shellcheck source=../lib/config.sh
+source "$AD_LIB_DIR/config.sh"
+# shellcheck source=../lib/browser.sh
+source "$AD_LIB_DIR/browser.sh"
+# shellcheck source=../lib/desktop.sh
+source "$AD_LIB_DIR/desktop.sh"
+# shellcheck source=../lib/session.sh
+source "$AD_LIB_DIR/session.sh"
+# shellcheck source=../lib/install.sh
+source "$AD_LIB_DIR/install.sh"
+# shellcheck source=../lib/status.sh
+source "$AD_LIB_DIR/status.sh"
+
+ad_main_usage() {
+    cat <<'EOF'
+ArmbianDesk — Lightweight browser-focused desktop layer for Armbian ARM64 STBs
+
+Usage:
+  armbiandesk install --user USER [--profile minimal|desktop] [--destdir DIR] [--enable-autologin] [--dry-run]
+  armbiandesk uninstall --user USER [--destdir DIR] [--dry-run]
+  armbiandesk restore --backup ID [--destdir DIR] [--force] [--dry-run]
+  armbiandesk status [--json]
+  armbiandesk config validate --file PATH
+  armbiandesk profile set <minimal|desktop> [--destdir DIR]
+  armbiandesk browser [--autostart | URL]
+  armbiandesk files [DIRECTORY]
+  armbiandesk power <logout|reboot|shutdown>
+  armbiandesk session
+  armbiandesk benchmark [--duration 60] [--output DIRECTORY]
+  armbiandesk --version
+EOF
+}
+
+cmd="${1:-}"
+shift || true
+
+case "$cmd" in
+    install) ad_cmd_install "$@" ;;
+    uninstall) ad_cmd_uninstall "$@" ;;
+    restore) ad_cmd_restore "$@" ;;
+    status) ad_cmd_status "$@" ;;
+    profile) ad_cmd_profile "$@" ;;
+    config)
+        sub="${1:-}"
+        shift || true
+        if [ "$sub" != "validate" ]; then
+            ad_die "Usage: armbiandesk config validate --file PATH"
+        fi
+        cfg_file=""
+        while [ $# -gt 0 ]; do
+            case "$1" in
+                --file) cfg_file="${2:-}"; shift 2 ;;
+                *) ad_die "Unknown config validate option: $1" ;;
+            esac
+        done
+        [ -n "$cfg_file" ] || ad_die "--file PATH is required"
+        ad_parse_config "$cfg_file" && echo "Config OK: $cfg_file"
+        ;;
+    browser)
+        if [ "${1:-}" = "--autostart" ]; then
+            ad_browser_autostart
+        else
+            ad_launch_browser "${1:-}"
+        fi
+        ;;
+    files) ad_launch_files "${1:-}" ;;
+    power) ad_power_action "${1:-}" ;;
+    session) ad_start_session ;;
+    internal-icon-watcher) ad_icon_visibility_watcher ;;
+    benchmark)
+        share_dir="$(ad_find_share_dir)" || ad_die "Cannot locate tools/benchmark.sh"
+        exec "$share_dir/tools/benchmark.sh" "$@"
+        ;;
+    -v|--version) echo "ArmbianDesk $ARMBIANDESK_VERSION" ;;
+    -h|--help|"") ad_main_usage ;;
+    *) ad_die "Unknown subcommand: $cmd (try --help)" ;;
+esac
