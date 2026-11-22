@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Shared utilities, path safety, and user resolution for ArmbianDesk.
 
-ARMBIANDESK_VERSION="0.1.0"
+export ARMBIANDESK_VERSION="0.1.0"
 
 ad_log() {
     printf '[armbiandesk] %s\n' "$*" >&2

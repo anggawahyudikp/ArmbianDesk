@@ -158,18 +158,18 @@ PY
 }
 
 ad_load_config_defaults() {
-    AD_CFG_PROFILE="minimal"
-    AD_CFG_START_URL="https://example.org/"
-    AD_CFG_BROWSER_AUTOSTART="true"
-    AD_CFG_BROWSER_BINARY="auto"
-    AD_CFG_BROWSER_COMPATIBILITY="standard"
-    AD_CFG_LANGUAGE="en_US.UTF-8"
-    AD_CFG_DISPLAY_MODE="auto"
-    AD_CFG_KEEP_AWAKE="true"
-    AD_CFG_DOCK_AUTOHIDE="true"
-    AD_CFG_DOCK_ZOOM="false"
-    AD_CFG_ENABLE_COMPOSITOR="false"
-    AD_CFG_STARTUP_SOUND="false"
+    export AD_CFG_PROFILE="minimal"
+    export AD_CFG_START_URL="https://example.org/"
+    export AD_CFG_BROWSER_AUTOSTART="true"
+    export AD_CFG_BROWSER_BINARY="auto"
+    export AD_CFG_BROWSER_COMPATIBILITY="standard"
+    export AD_CFG_LANGUAGE="en_US.UTF-8"
+    export AD_CFG_DISPLAY_MODE="auto"
+    export AD_CFG_KEEP_AWAKE="true"
+    export AD_CFG_DOCK_AUTOHIDE="true"
+    export AD_CFG_DOCK_ZOOM="false"
+    export AD_CFG_ENABLE_COMPOSITOR="false"
+    export AD_CFG_STARTUP_SOUND="false"
 }
 
 # Load system config then optional user override config (user cannot alter binary/system paths if disallowed).

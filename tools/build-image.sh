@@ -264,13 +264,13 @@ LABEL=ARMBIAN_BOOT  /boot  vfat  defaults,noatime                               
 tmpfs               /tmp   tmpfs defaults,nosuid                                           0  0
 EOF
 
-chroot "$WORK_DIR/mnt" bash -c "
+chroot "$WORK_DIR/mnt" bash -c '
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
-apt-get install -y --no-install-recommends ${PROFILE_PACKAGES[*]}
+apt-get install -y --no-install-recommends "$@"
 apt-get clean
 rm -rf /var/lib/apt/lists/*
-"
+' _ "${PROFILE_PACKAGES[@]}"
 
 # 5. Create non-root user (require explicit password hash or force password setup on first login)
 chroot "$WORK_DIR/mnt" groupadd -f netdev
