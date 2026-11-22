@@ -68,7 +68,7 @@ ad_rollback_manifest_partial() {
 
     ad_warn "Rolling back partially installed files from $manifest..."
     # Reverse order rollback
-    tac "$manifest" | while IFS=$'\t' read -r kind rel_path orig_sha orig_mode orig_uid orig_gid inst_sha; do
+    tac "$manifest" | while IFS=$'\t' read -r kind rel_path _ orig_mode orig_uid orig_gid _; do
         [ -n "$rel_path" ] || continue
         local abs_target="${destdir}${rel_path}"
         if [ "$kind" = "NEW" ]; then
@@ -332,7 +332,7 @@ ad_cmd_uninstall() {
 
     echo "=== ArmbianDesk Uninstall Plan ==="
     echo "Manifest: $active_manifest"
-    while IFS=$'\t' read -r kind rel_path _rest; do
+    while IFS=$'\t' read -r _ rel_path _; do
         [ -n "$rel_path" ] || continue
         echo "  - remove ${destdir}${rel_path}"
     done <"$active_manifest"
@@ -343,7 +343,7 @@ ad_cmd_uninstall() {
         return 0
     fi
 
-    tac "$active_manifest" | while IFS=$'\t' read -r kind rel_path _rest; do
+    tac "$active_manifest" | while IFS=$'\t' read -r _ rel_path _; do
         [ -n "$rel_path" ] || continue
         ad_assert_safe_target "$destdir" "$rel_path"
         rm -f "${destdir}${rel_path}"
@@ -377,7 +377,7 @@ ad_cmd_restore() {
 
     local conflicts=0
     echo "=== ArmbianDesk Restore Plan ($backup_id) ==="
-    while IFS=$'\t' read -r kind rel_path orig_sha orig_mode orig_uid orig_gid inst_sha; do
+    while IFS=$'\t' read -r kind rel_path _ _ _ _ inst_sha; do
         [ -n "$rel_path" ] || continue
         ad_assert_safe_target "$destdir" "$rel_path"
         local abs_target="${destdir}${rel_path}"

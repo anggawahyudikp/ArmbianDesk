@@ -159,8 +159,8 @@ ad_launch_browser() {
     # Forward TERM/INT cleanly so profile closes without crash state
     trap 'kill -TERM "$browser_pid" 2>/dev/null || true' TERM INT
 
-    local attempt win_id
-    for attempt in $(seq 1 30); do
+    local attempt=0 win_id
+    while [ "$attempt" -lt 30 ]; do
         if ! kill -0 "$browser_pid" 2>/dev/null; then
             break
         fi
@@ -170,6 +170,7 @@ ad_launch_browser() {
             break
         fi
         sleep 0.5
+        attempt=$((attempt + 1))
     done
 
     wait "$browser_pid"

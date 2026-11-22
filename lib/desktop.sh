@@ -83,8 +83,8 @@ ad_icon_visibility_watcher() {
     }
 
     has_visible_normal_window() {
-        local window_id desktop host title wclass wstate wtype
-        while read -r window_id desktop host title; do
+        local window_id _ wclass wstate wtype
+        while read -r window_id _; do
             [ -n "${window_id:-}" ] || continue
             # Skip sticky desktop/panel windows (-1) unless normal
             wclass="$(xprop -id "$window_id" WM_CLASS 2>/dev/null || true)"
@@ -117,7 +117,7 @@ ad_icon_visibility_watcher() {
     sync_icons
 
     xprop -root -spy _NET_CLIENT_LIST _NET_CLIENT_LIST_STACKING _NET_ACTIVE_WINDOW 2>/dev/null |
-    while IFS= read -r _event; do
+    while IFS= read -r _; do
         sync_icons
     done
 }
