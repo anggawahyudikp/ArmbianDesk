@@ -15,6 +15,7 @@ rm -f "$ZIP_PATH" "${ZIP_PATH}.sha256"
 ALLOWLIST=(
     "README.md"
     "README.id.md"
+    "logo.svg"
     "LICENSE"
     "THIRD_PARTY_NOTICES.md"
     "CHANGELOG.md"

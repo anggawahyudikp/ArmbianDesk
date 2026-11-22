@@ -1,49 +1,70 @@
-# ArmbianDesk (Bahasa Indonesia)
+<h1 align="center">
+  <a href="https://github.com/anggawahyudikp/ArmbianDesk">
+    <img src="logo.svg" alt="ArmbianDesk" width="128" height="128" />
+    <br />
+    ArmbianDesk
+  </a>
+</h1>
 
-**ArmbianDesk** adalah toolkit desktop X11 ringan berfokus browser dan pembuat image **flashdisk USB bootable ARM64** untuk STB/SBC berbasis Armbian dengan RAM terbatas (~1 GB).
+<p align="center">
+  <a href="https://github.com/anggawahyudikp/ArmbianDesk/releases/latest"><img alt="GitHub release (latest SemVer)" src="https://img.shields.io/github/v/release/anggawahyudikp/ArmbianDesk?sort=semver"></a>
+  <a href="https://github.com/anggawahyudikp/ArmbianDesk/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/anggawahyudikp/ArmbianDesk/ci.yml?branch=main"></a>
+  <img src="https://img.shields.io/github/license/anggawahyudikp/ArmbianDesk" alt="MIT License" />
+</p>
 
-> **Catatan Ruang Lingkup:** Lapisan desktop inti (`armbiandesk`) berjalan di atas sistem Linux Armbian/Debian/Ubuntu ARM64 yang sudah boot. Untuk kebutuhan membuat **flashdisk bootable secara langsung**, tersedia `armbiandesk-image` yang membangun file `.img` dari nol (`debootstrap` rootfs ARM64 + kernel/DTB/U-Boot dari image donor atau tarball terverifikasi + ArmbianDesk terpasang otomatis) beserta utilitas flasher USB yang aman. Pada unit STB Android bawaan pabrik (seperti revisi tertentu ZTE B860H), boot dari USB mungkin memerlukan aktivasi USB-first-boot terlebih dahulu; lihat [docs/HARDWARE.md](docs/HARDWARE.md) dan [tools/b860h-usb-prep/README.md](tools/b860h-usb-prep/README.md).
+<p align="center">
+Toolkit desktop ringan & pembuat flashdisk USB bootable untuk STB Armbian ARM64.
+</p>
 
-## Fitur Utama (v0.1.0)
-- **Dua Profil Desktop**:
-  - `minimal` *(default)*: Window manager `openbox`, wallpaper SVG statis (`feh`), jam digital ringan (`xclock`), launcher Browser & Files, tanpa compositor maupun dock.
-  - `desktop` *(opt-in)*: `xfwm4 --compositor=off`, satu top bar fungsional `xfce4-panel`, dan satu dock bawah terpusat `plank` (*intelligent auto-hide*, tanpa animasi zoom/suara startup).
-- **Pembuat Flashdisk Bootable Penuh (`armbiandesk-image`)**:
-  - Membangun file `.img` partisi ganda (`ARMBIAN_BOOT` FAT32 + `ARMBIAN_ROOT` ext4) dari nol dengan `debootstrap`, `qemu-aarch64-static`, `extlinux.conf`, skrip U-Boot terkompilasi (`s905_autoscript`, `aml_autoscript`), `zram-tools`, `earlyoom`, dan ArmbianDesk siap pakai.
-  - Penulis USB (`armbiandesk-image flash`) menolak disk non-removable/disk OS dan memverifikasi hasil tulis dengan SHA-256 readback.
-- **Keamanan & Keandalan**:
-  - Parser konfigurasi berbasis whitelist data murni (tidak pernah menjalankan `source`/`eval`).
-  - Browser berjalan sebagai user biasa dengan sandbox & site isolation aktif (tanpa `--no-sandbox`).
-  - Installer idempoten dengan `--dry-run`, `--destdir`/`--root`, backup atomik, rollback otomatis jika gagal di tengah jalan, dan deteksi konflik saat restore.
+<p align="center">
+  <a href="README.md">English</a> ·
+  <a href="docs/IMAGE_BUILDER.md">Image Builder</a> ·
+  <a href="docs/INSTALL.md">Instalasi</a> ·
+  <a href="docs/HARDWARE.md">Matriks Hardware</a>
+</p>
 
-## Panduan Singkat
+---
 
-### 1. Membuat Image & Flashdisk Bootable
+**ArmbianDesk** mengubah STB/SBC Armbian ARM64 ber-RAM ~1 GB (seperti ZTE B860H S905X) menjadi desktop X11 berfokus browser yang ringan — **sekaligus menyediakan builder untuk langsung membuat image `.img` flashdisk USB bootable dari nol** (`debootstrap` + kernel/DTB/U-Boot + ArmbianDesk terpasang otomatis).
+
+## Dua Profil untuk RAM 1 GB.
+
+- **`minimal`** *(default)* — `openbox`, wallpaper SVG statis (`feh`), jam digital (`xclock`), launcher Browser & Files, tanpa compositor maupun dock.
+- **`desktop`** *(opt-in)* — `xfwm4 --compositor=off`, satu top bar fungsional `xfce4-panel`, dan satu dock bawah `plank` (*intelligent auto-hide*, tanpa animasi zoom/suara startup), dengan fallback otomatis ke `minimal` bila `xfwm4` gagal.
+
+## Buat Flashdisk Bootable dalam Satu Perintah.
+
 ```bash
-# Cek rencana build (dry-run tanpa akses root)
+# 1. Cek rencana build (dry-run tanpa root)
 ./bin/armbiandesk-image build \
   --distro debian --release bookworm --profile minimal \
   --user deskuser \
   --boot-source-image /path/ke/armbian-s905x.img \
   --output ./out/armbiandesk-usb.img --dry-run
 
-# Build image .img (memerlukan sudo, debootstrap, qemu-user-static, u-boot-tools)
+# 2. Build image .img (memerlukan sudo, debootstrap, qemu-user-static, u-boot-tools)
+HASH="$(openssl passwd -6)"
 sudo ./bin/armbiandesk-image build \
   --distro debian --release bookworm --profile minimal \
-  --user deskuser \
+  --user deskuser --password-hash "$HASH" \
   --boot-source-image /path/ke/armbian-s905x.img \
-  --output ./out/armbiandesk-usb.img
+  --output ./out/armbiandesk-usb.img --compress
 
-# Tulis ke flashdisk /dev/sdX dan verifikasi SHA-256
+# 3. Tulis aman ke flashdisk USB /dev/sdX + verifikasi SHA-256 readback
 sudo ./bin/armbiandesk-image flash --image ./out/armbiandesk-usb.img --device /dev/sdX
 ```
 
-### 2. Memasang ke Armbian yang Sudah Boot
+> **Catatan STB Android Bawaan:** Pada revisi tertentu ZTE B860H, U-Boot bawaan memerlukan aktivasi USB-first-boot terlebih dahulu. Lihat [docs/HARDWARE.md](docs/HARDWARE.md) dan modul opsional [tools/b860h-usb-prep/README.md](tools/b860h-usb-prep/README.md).
+
+## Pasang di Armbian yang Sudah Boot
+
 ```bash
 ./bin/armbiandesk install --user USER --profile minimal --dry-run
 sudo ./bin/armbiandesk install --user USER --profile minimal
-# Opsional autologin via drop-in terpisah:
-sudo ./bin/armbiandesk install --user USER --profile minimal --enable-autologin
 ```
 
-Lihat [README.md](README.md) dan direktori [`docs/`](docs) untuk dokumentasi teknis lengkap.
+Tambahkan `--enable-autologin` bila ingin autologin LightDM melalui drop-in terpisah, atau ubah profil kapan saja dengan `sudo armbiandesk profile set desktop`.
+
+## Lisensi & Kontribusi
+
+Dirilis dengan [Lisensi MIT](LICENSE). Lihat [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) untuk daftar paket pihak ketiga. Laporan bug, hasil uji revisi hardware, dan pull request sangat diterima.

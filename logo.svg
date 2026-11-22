@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <linearGradient id="ad-grad" x1="12" y1="8" x2="116" y2="120" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="55%" stop-color="#3B82F6"/>
+      <stop offset="100%" stop-color="#4F46E5"/>
+    </linearGradient>
+    <linearGradient id="ad-screen" x1="30" y1="30" x2="98" y2="82" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.98"/>
+      <stop offset="100%" stop-color="#E0F2FE" stop-opacity="0.92"/>
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="120" height="120" rx="28" fill="url(#ad-grad)"/>
+  <rect x="24" y="28" width="80" height="54" rx="10" fill="url(#ad-screen)"/>
+  <rect x="31" y="35" width="66" height="6" rx="3" fill="#0F172A" fill-opacity="0.18"/>
+  <circle cx="35" cy="38" r="1.7" fill="#38BDF8"/>
+  <circle cx="41" cy="38" r="1.7" fill="#6366F1"/>
+  <rect x="31" y="47" width="40" height="27" rx="5" fill="#0F172A" fill-opacity="0.10"/>
+  <rect x="75" y="47" width="22" height="12" rx="4" fill="#3B82F6" fill-opacity="0.25"/>
+  <rect x="75" y="62" width="22" height="12" rx="4" fill="#0F172A" fill-opacity="0.12"/>
+  <rect x="46" y="88" width="36" height="8" rx="4" fill="#FFFFFF" fill-opacity="0.90"/>
+  <rect x="57" y="82" width="14" height="6" fill="#FFFFFF" fill-opacity="0.72"/>
+</svg>

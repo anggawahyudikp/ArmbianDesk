@@ -4,6 +4,7 @@ All graphical/config assets bundled in ArmbianDesk are newly created, neutral, a
 
 | Asset Path | Origin | License | Purpose |
 |---|---|---|---|
+| `logo.svg` | Original authored SVG | MIT | Project icon and README mark |
 | `share/wallpapers/armbiandesk.svg` | Original authored SVG | MIT | Neutral static desktop wallpaper |
 | `share/plank/dock.theme` | Original INI configuration | MIT | Neutral slate Plank dock theme (no shadows/glow) |
 | `share/openbox/rc.xml`, `menu.xml` | Original authored XML | MIT | Minimal profile window management & menu |

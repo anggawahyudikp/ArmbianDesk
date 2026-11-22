@@ -37,7 +37,7 @@ EOF
 }
 
 DISTRO="debian"
-RELEASE="bookworm"
+RELEASE=""
 MIRROR=""
 PROFILE="minimal"
 TARGET_USER="deskuser"
@@ -83,6 +83,7 @@ done
 case "$DISTRO" in
     debian)
         MIRROR="${MIRROR:-http://deb.debian.org/debian}"
+        RELEASE="${RELEASE:-bookworm}"
         COMPONENTS="main,contrib,non-free-firmware"
         ;;
     ubuntu)
@@ -134,8 +135,8 @@ fi
 PROFILE_PACKAGES=(
     systemd systemd-sysv udev dbus kmod iproute2 network-manager openssh-server
     sudo ca-certificates locales curl less nano
-    xorg x11-xserver-utils x11-utils x11-apps feh wmctrl xdotool
-    thunar gvfs chromium zram-tools earlyoom
+    xorg x11-xserver-utils x11-utils x11-apps lightdm lightdm-gtk-greeter
+    feh wmctrl xdotool thunar gvfs chromium zram-tools earlyoom
 )
 if [ "$PROFILE" = "minimal" ]; then
     PROFILE_PACKAGES+=(openbox)
@@ -254,6 +255,7 @@ mount --bind /dev "$WORK_DIR/mnt/dev"
 mount --bind /dev/pts "$WORK_DIR/mnt/dev/pts"
 mount -t proc proc "$WORK_DIR/mnt/proc"
 mount -t sysfs sysfs "$WORK_DIR/mnt/sys"
+[ -f /etc/resolv.conf ] && cp -L /etc/resolv.conf "$WORK_DIR/mnt/etc/resolv.conf"
 
 printf '%s\n' "$HOSTNAME_VAL" >"$WORK_DIR/mnt/etc/hostname"
 cat >"$WORK_DIR/mnt/etc/fstab" <<'EOF'
@@ -271,6 +273,7 @@ rm -rf /var/lib/apt/lists/*
 "
 
 # 5. Create non-root user (require explicit password hash or force password setup on first login)
+chroot "$WORK_DIR/mnt" groupadd -f netdev
 chroot "$WORK_DIR/mnt" useradd -m -s /bin/bash -G sudo,video,audio,netdev "$TARGET_USER"
 if [ -n "$PASSWORD_HASH" ]; then
     printf '%s:%s\n' "$TARGET_USER" "$PASSWORD_HASH" | chroot "$WORK_DIR/mnt" chpasswd -e
@@ -279,8 +282,19 @@ else
     chroot "$WORK_DIR/mnt" chage -d 0 "$TARGET_USER"
 fi
 
-# 6. Install kernel, modules, DTB, U-Boot scripts, and extlinux.conf
-cp -a "$WORK_DIR/boot_assets/." "$WORK_DIR/mnt/boot/"
+# 6. Install kernel, modules, DTB, U-Boot scripts, and extlinux.conf (FAT32-safe copy)
+cp -r --no-preserve=ownership,mode "$WORK_DIR/boot_assets/." "$WORK_DIR/mnt/boot/"
+if [ ! -f "$WORK_DIR/mnt/boot/Image" ]; then
+    kfile="$(find "$WORK_DIR/mnt/boot" -maxdepth 1 -type f \( -name 'zImage' -o -name 'vmlinuz-*' -o -name 'Image-*' \) | head -n 1 || true)"
+    [ -n "$kfile" ] && cp "$kfile" "$WORK_DIR/mnt/boot/Image"
+fi
+if [ ! -f "$WORK_DIR/mnt/boot/uInitrd" ]; then
+    initrd_src="$(find "$WORK_DIR/mnt/boot" -maxdepth 1 -type f -name 'initrd.img-*' | head -n 1 || true)"
+    if [ -n "$initrd_src" ]; then
+        mkimage -A arm64 -O linux -T ramdisk -C none -d "$initrd_src" "$WORK_DIR/mnt/boot/uInitrd"
+    fi
+fi
+
 if [ -d "$WORK_DIR/modules" ]; then
     mkdir -p "$WORK_DIR/mnt/lib/modules"
     cp -a "$WORK_DIR/modules/." "$WORK_DIR/mnt/lib/modules/"
@@ -289,6 +303,9 @@ fi
 mkdir -p "$WORK_DIR/mnt/boot/extlinux"
 sed -e "s|@DTB_RELPATH@|${DTB_RELPATH}|g" -e "s|@CMA_MB@|${CMA_MB}|g" \
     "$SELF_DIR/share/boot/extlinux.conf.in" >"$WORK_DIR/mnt/boot/extlinux/extlinux.conf"
+if [ ! -f "$WORK_DIR/mnt/boot/uInitrd" ]; then
+    sed -i '/^[[:space:]]*INITRD[[:space:]]/d' "$WORK_DIR/mnt/boot/extlinux/extlinux.conf"
+fi
 
 mkimage -C none -A arm -T script -d "$SELF_DIR/share/boot/s905_autoscript.cmd" "$WORK_DIR/mnt/boot/s905_autoscript"
 mkimage -C none -A arm -T script -d "$SELF_DIR/share/boot/aml_autoscript.cmd" "$WORK_DIR/mnt/boot/aml_autoscript"
@@ -304,9 +321,16 @@ EOF
 
 # 8. Install ArmbianDesk directly into target image rootfs
 "$SELF_DIR/bin/armbiandesk" install --root "$WORK_DIR/mnt" --user "$TARGET_USER" --profile "$PROFILE" --enable-autologin
-if [ -n "$START_URL" ]; then
-    sed -i "s|^START_URL=.*|START_URL=${START_URL}|" "$WORK_DIR/mnt/etc/armbiandesk/armbiandesk.conf"
-fi
+python3 - "$WORK_DIR/mnt/etc/armbiandesk/armbiandesk.conf" "$START_URL" <<'PY'
+import pathlib, sys
+p = pathlib.Path(sys.argv[1])
+url = sys.argv[2]
+lines = [
+    f"START_URL={url}" if ln.startswith("START_URL=") else ln
+    for ln in p.read_text(encoding="utf-8").splitlines()
+]
+p.write_text("\n".join(lines) + "\n", encoding="utf-8")
+PY
 
 # Clean up qemu binary before sealing image
 rm -f "$WORK_DIR/mnt/usr/bin/qemu-aarch64-static"

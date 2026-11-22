@@ -1,71 +1,96 @@
-# ArmbianDesk
+<h1 align="center">
+  <a href="https://github.com/anggawahyudikp/ArmbianDesk">
+    <img src="logo.svg" alt="ArmbianDesk" width="128" height="128" />
+    <br />
+    ArmbianDesk
+  </a>
+</h1>
 
-**ArmbianDesk** is an open-source, lightweight X11 browser-focused desktop toolkit and bootable ARM64 USB flashdisk image builder designed for resource-constrained Armbian TV boxes / single-board computers (~1 GB RAM).
+<p align="center">
+  <a href="https://github.com/anggawahyudikp/ArmbianDesk/releases/latest"><img alt="GitHub release (latest SemVer)" src="https://img.shields.io/github/v/release/anggawahyudikp/ArmbianDesk?sort=semver"></a>
+  <a href="https://github.com/anggawahyudikp/ArmbianDesk/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/anggawahyudikp/ArmbianDesk/ci.yml?branch=main"></a>
+  <img src="https://img.shields.io/github/license/anggawahyudikp/ArmbianDesk" alt="MIT License" />
+</p>
 
-> **Scope & Prerequisite Note:** ArmbianDesk's core desktop layer (`armbiandesk`) runs on an already-booted Armbian/Debian/Ubuntu ARM64 X11 userland. For users who want to create a **bootable USB flashdisk directly**, `armbiandesk-image` provides a full image builder (`debootstrap` ARM64 rootfs + kernel/DTB/U-Boot bootchain from a verified donor image or tarball + pre-installed ArmbianDesk) and a safe removable-only USB writer. Booting from USB on stock Android boxes (such as certain ZTE B860H revisions) may require prior USB-boot enabling on the box; see [docs/HARDWARE.md](docs/HARDWARE.md) and [tools/b860h-usb-prep/README.md](tools/b860h-usb-prep/README.md).
+<p align="center">
+The lightweight browser desktop & bootable USB toolkit for Armbian ARM64 TV boxes.
+</p>
 
-## Features (v0.1.0)
-- **Two Desktop Profiles**:
-  - `minimal` *(default)*: `openbox` window manager, static SVG wallpaper (`feh`), digital clock (`xclock`), Browser & Files launchers, zero compositor/dock overhead.
-  - `desktop` *(opt-in)*: `xfwm4 --compositor=off`, one functional top `xfce4-panel` (Applications menu, window buttons, clock), and one centered `plank` bottom dock (`intelligent` auto-hide, zoom/sound off).
-- **Full Bootable Flashdisk Builder (`armbiandesk-image`)**:
-  - Builds a dual-partition `.img` (`ARMBIAN_BOOT` FAT32 + `ARMBIAN_ROOT` ext4) from scratch with `debootstrap`, `qemu-aarch64-static`, `extlinux.conf`, compiled U-Boot scripts (`s905_autoscript`, `aml_autoscript`), `zram-tools`, `earlyoom`, and ArmbianDesk pre-installed.
-  - Safe USB flasher (`armbiandesk-image flash`) refuses non-removable disks or OS mounts and verifies written bytes via SHA-256 readback.
-- **Security & Reliability by Design**:
-  - Strict data-only configuration parser (never `source`s or `eval`s config files).
-  - Sandboxed browser execution as a regular non-root user (`--no-sandbox` is never used; site isolation stays enabled).
-  - Idempotent install/uninstall/restore with `--dry-run`, `--destdir`/`--root`, `0600` private manifests, conflict detection, and automatic rollback on failure.
+<p align="center">
+  <a href="#get-started">Get started</a> ·
+  <a href="#bootable-usb-in-one-command">Bootable USB</a> ·
+  <a href="README.id.md">Bahasa Indonesia</a> ·
+  <a href="docs/HARDWARE.md">Hardware Matrix</a>
+</p>
 
-## Quick Start
+---
 
-### 1. Build a Bootable USB Flashdisk Image
+ArmbianDesk turns a ~1 GB RAM Armbian/Debian/Ubuntu ARM64 device (such as observed ZTE B860H S905X hardware) into a fast, browser-first desktop — **or builds a complete bootable USB flashdisk `.img` from scratch** with `debootstrap` and ArmbianDesk pre-installed.
+
+## Profiles That Fit 1 GB RAM.
+
+Choose the session weight that matches your hardware:
+
+- **`minimal`** *(default)* — `openbox`, static SVG wallpaper (`feh`), lightweight clock (`xclock`), Browser & Files launchers, and zero compositor or resident dock overhead.
+- **`desktop`** *(opt-in)* — `xfwm4 --compositor=off`, one functional `xfce4-panel` top bar, and one centered `plank` bottom dock with intelligent auto-hide (animations, zoom, and startup sounds off). Automatic fallback to `minimal` if `xfwm4` fails startup.
+
+## Bootable USB, Ready in One Command.
+
+Need to boot straight from a USB flashdisk? `armbiandesk-image` creates a clean dual-partition `.img` (`ARMBIAN_BOOT` FAT32 + `ARMBIAN_ROOT` ext4) using `debootstrap` (`arm64`), a user-supplied donor Armbian/Amlogic kernel & `u-boot.ext` (or custom `--kernel-tar`), compiled U-Boot autoscripts, `zram` + `earlyoom`, and ArmbianDesk pre-configured.
+
 ```bash
-# Dry-run plan first (no root required)
+# 1. Preview the build plan (no root required)
 ./bin/armbiandesk-image build \
   --distro debian --release bookworm --profile minimal \
   --user deskuser \
   --boot-source-image /path/to/official-armbian-s905x.img \
   --output ./out/armbiandesk-usb.img --dry-run
 
-# Build the bootable .img (requires sudo, debootstrap, qemu-user-static, u-boot-tools)
+# 2. Build the bootable .img (requires sudo, debootstrap, qemu-user-static, u-boot-tools)
+HASH="$(openssl passwd -6)"
 sudo ./bin/armbiandesk-image build \
   --distro debian --release bookworm --profile minimal \
-  --user deskuser \
+  --user deskuser --password-hash "$HASH" \
   --boot-source-image /path/to/official-armbian-s905x.img \
-  --output ./out/armbiandesk-usb.img
+  --output ./out/armbiandesk-usb.img --compress
 
-# Flash safely to USB drive /dev/sdX (replace sdX with your actual removable USB drive)
+# 3. Flash safely to a removable USB drive + verify SHA-256 readback
 sudo ./bin/armbiandesk-image flash --image ./out/armbiandesk-usb.img --device /dev/sdX
 ```
-See [docs/IMAGE_BUILDER.md](docs/IMAGE_BUILDER.md) for full options and kernel tarball inputs.
 
-### 2. Install Onto an Existing Booted Armbian System
+> **Stock Android TV Boxes:** Some B860H revisions require USB-boot activation before stock U-Boot probes USB drives. See [docs/HARDWARE.md](docs/HARDWARE.md) and the optional experimental helper in [tools/b860h-usb-prep/README.md](tools/b860h-usb-prep/README.md).
+
+## Get started
+
+Already booted into Armbian ARM64 X11? Install ArmbianDesk onto your live system in two steps:
+
 ```bash
-# Preview install plan without modifying system files
+# Preview target paths without touching the filesystem
 ./bin/armbiandesk install --user USER --profile minimal --dry-run
 
-# Install ArmbianDesk (registers LightDM session without changing existing sessions)
+# Install (registers LightDM session without altering active sessions or enabling autologin)
 sudo ./bin/armbiandesk install --user USER --profile minimal
-
-# Optional: enable autologin into ArmbianDesk via isolated LightDM drop-in
-sudo ./bin/armbiandesk install --user USER --profile minimal --enable-autologin
 ```
 
-### 3. Manage & Inspect
-```bash
-armbiandesk status --json
-armbiandesk config validate --file /etc/armbiandesk/armbiandesk.conf
-sudo armbiandesk profile set desktop
-armbiandesk benchmark --duration 60 --output ./benchmarks
-sudo armbiandesk uninstall --user USER
-sudo armbiandesk restore --backup BACKUP_ID
-```
+Pass `--enable-autologin` if you want an isolated LightDM drop-in, or switch profiles any time with `sudo armbiandesk profile set desktop`. See [docs/INSTALL.md](docs/INSTALL.md) and [docs/UNINSTALL.md](docs/UNINSTALL.md) for backup, restore, and rollback commands.
+
+## Sandboxed & Safe by Design.
+
+- **No `--no-sandbox` shortcuts** — Chromium runs as an unprivileged user with OS sandboxing and site isolation intact.
+- **Data-only configuration** — [`armbiandesk.conf`](config/armbiandesk.conf.example) is validated by a strict whitelist parser (`lib/config.sh`), never `source`d or `eval`ed as shell.
+- **Atomic backups & rollback** — `install` creates `0600` manifests, rolls back partial writes on failure, preserves browser profiles on `uninstall`, and detects local edits during `restore`.
+- **Safe USB flashing** — `armbiandesk-image flash` rejects non-removable disks (`RM != 1`) and OS mounts before writing.
 
 ## Documentation
-- Indonesian guide: [README.id.md](README.id.md)
-- Install & Uninstall: [docs/INSTALL.md](docs/INSTALL.md), [docs/UNINSTALL.md](docs/UNINSTALL.md)
-- Flashdisk Image Builder: [docs/IMAGE_BUILDER.md](docs/IMAGE_BUILDER.md)
-- Hardware Matrix & Limits: [docs/HARDWARE.md](docs/HARDWARE.md)
-- Performance & Benchmarks: [docs/PERFORMANCE.md](docs/PERFORMANCE.md), [BENCHMARK.md](BENCHMARK.md)
-- Troubleshooting & Privacy: [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md), [docs/PRIVACY.md](docs/PRIVACY.md)
-- Assets & Third-Party Notices: [docs/ASSETS.md](docs/ASSETS.md), [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
+
+- [Image Builder Guide](docs/IMAGE_BUILDER.md) · [Install](docs/INSTALL.md) · [Uninstall & Restore](docs/UNINSTALL.md)
+- [Hardware Matrix & Limits](docs/HARDWARE.md) · [Performance](docs/PERFORMANCE.md) · [Troubleshooting](docs/TROUBLESHOOTING.md)
+- [Privacy](docs/PRIVACY.md) · [Assets & Provenance](docs/ASSETS.md) · [Test Report](TEST_REPORT.md) · [Benchmark Methodology](BENCHMARK.md)
+
+## Contribute
+
+Bug reports, hardware revision reports, and pull requests are welcome. Run `./tests/run-all.sh` before submitting and see [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md).
+
+## Credits
+
+Licensed under the [MIT License](LICENSE). See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for external distribution packages and upstream licenses.

@@ -24,6 +24,7 @@ import configparser, os, sys, xml.etree.ElementTree as ET
 
 root = sys.argv[1]
 xml_files = [
+    "logo.svg",
     "share/openbox/rc.xml",
     "share/openbox/menu.xml",
     "share/xfce4/xfce4-panel.xml",
