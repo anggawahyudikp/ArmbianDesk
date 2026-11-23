@@ -176,7 +176,7 @@ fi
 [ "${EUID:-$(id -u)}" -eq 0 ] || { echo "error: real image build requires root (sudo) for debootstrap and loop mounts" >&2; exit 1; }
 [ "${#MISSING_TOOLS[@]}" -eq 0 ] || { echo "error: missing required host tools: ${MISSING_TOOLS[*]}" >&2; exit 1; }
 
-WORK_DIR="$(mktemp -d /tmp/armbiandesk-imgbuild.XXXXXX)"
+WORK_DIR="$(mktemp -d "${TMPDIR:-/var/tmp}/armbiandesk-imgbuild.XXXXXX")"
 LOOP_DEV=""
 DONOR_LOOP=""
 cleanup() {
@@ -264,13 +264,25 @@ LABEL=ARMBIAN_BOOT  /boot  vfat  defaults,noatime                               
 tmpfs               /tmp   tmpfs defaults,nosuid                                           0  0
 EOF
 
+cat >"$WORK_DIR/mnt/usr/sbin/policy-rc.d" <<'EOF'
+#!/bin/sh
+exit 101
+EOF
+chmod 0755 "$WORK_DIR/mnt/usr/sbin/policy-rc.d"
+
 chroot "$WORK_DIR/mnt" bash -c '
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
 apt-get install -y --no-install-recommends "$@"
+if [ -f /etc/locale.gen ]; then
+    sed -i "s/^# *en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/" /etc/locale.gen
+    locale-gen en_US.UTF-8 || true
+fi
 apt-get clean
 rm -rf /var/lib/apt/lists/*
 ' _ "${PROFILE_PACKAGES[@]}"
+
+rm -f "$WORK_DIR/mnt/usr/sbin/policy-rc.d"
 
 # 5. Create non-root user (require explicit password hash or force password setup on first login)
 chroot "$WORK_DIR/mnt" groupadd -f netdev
@@ -283,7 +295,7 @@ else
 fi
 
 # 6. Install kernel, modules, DTB, U-Boot scripts, and extlinux.conf (FAT32-safe copy)
-cp -r --no-preserve=ownership,mode "$WORK_DIR/boot_assets/." "$WORK_DIR/mnt/boot/"
+cp -rL --no-preserve=ownership,mode "$WORK_DIR/boot_assets/." "$WORK_DIR/mnt/boot/"
 if [ ! -f "$WORK_DIR/mnt/boot/Image" ]; then
     kfile="$(find "$WORK_DIR/mnt/boot" -maxdepth 1 -type f \( -name 'zImage' -o -name 'vmlinuz-*' -o -name 'Image-*' \) | head -n 1 || true)"
     [ -n "$kfile" ] && cp "$kfile" "$WORK_DIR/mnt/boot/Image"
