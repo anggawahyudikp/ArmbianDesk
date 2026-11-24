@@ -151,7 +151,7 @@ for tool in "${REQUIRED_HOST_TOOLS[@]}"; do
 done
 
 echo "=== ArmbianDesk Bootable Image Build Plan ==="
-echo "Output Image       : $OUTPUT_IMG (${SIZE_MB} MiB: ${BOOT_MB} MiB FAT32 ARMBIAN_BOOT + ext4 ARMBIAN_ROOT)"
+echo "Output Image       : $OUTPUT_IMG (${SIZE_MB} MiB: ${BOOT_MB} MiB FAT32 ARMBIANBOOT + ext4 ARMBIAN_ROOT)"
 echo "Base Userland      : $DISTRO $RELEASE (arm64 via debootstrap + qemu-aarch64-static)"
 echo "APT Mirror         : $MIRROR ($COMPONENTS)"
 echo "ArmbianDesk Profile: $PROFILE (user=$TARGET_USER, autologin=enabled)"
@@ -230,7 +230,7 @@ fi
 [ -f "$WORK_DIR/boot_assets/Image" ] || [ -f "$WORK_DIR/boot_assets/zImage" ] || { echo "error: kernel Image not found in boot assets" >&2; exit 1; }
 [ -f "$WORK_DIR/boot_assets/dtb/$DTB_RELPATH" ] || { echo "error: DTB not found: $WORK_DIR/boot_assets/dtb/$DTB_RELPATH" >&2; exit 1; }
 
-# 2. Allocate raw image & partition table (MBR: p1=FAT32 ARMBIAN_BOOT, p2=ext4 ARMBIAN_ROOT)
+# 2. Allocate raw image & partition table (MBR: p1=FAT32 ARMBIANBOOT, p2=ext4 ARMBIAN_ROOT)
 truncate -s "${SIZE_MB}M" "$OUTPUT_IMG"
 parted -s "$OUTPUT_IMG" mklabel msdos
 parted -s "$OUTPUT_IMG" mkpart primary fat32 4MiB "$((BOOT_MB + 4))MiB"
@@ -238,7 +238,7 @@ parted -s "$OUTPUT_IMG" set 1 boot on
 parted -s "$OUTPUT_IMG" mkpart primary ext4 "$((BOOT_MB + 4))MiB" 100%
 
 LOOP_DEV="$(losetup --find --show -P "$OUTPUT_IMG")"
-mkfs.vfat -F 32 -n ARMBIAN_BOOT "${LOOP_DEV}p1"
+mkfs.vfat -F 32 -n ARMBIANBOOT "${LOOP_DEV}p1"
 mkfs.ext4 -F -L ARMBIAN_ROOT "${LOOP_DEV}p2"
 
 mount "${LOOP_DEV}p2" "$WORK_DIR/mnt"
@@ -247,7 +247,7 @@ mount "${LOOP_DEV}p1" "$WORK_DIR/mnt/boot"
 
 # 3. Debootstrap ARM64 userland via qemu-aarch64-static
 debootstrap --arch=arm64 --foreign --components="$COMPONENTS" "$RELEASE" "$WORK_DIR/mnt" "$MIRROR"
-cp /usr/bin/qemu-aarch64-static "$WORK_DIR/mnt/usr/bin/"
+cp -L /usr/bin/qemu-aarch64-static "$WORK_DIR/mnt/usr/bin/qemu-aarch64-static"
 chroot "$WORK_DIR/mnt" /debootstrap/debootstrap --second-stage
 
 # 4. Configure APT, base system, userland packages
@@ -260,7 +260,7 @@ mount -t sysfs sysfs "$WORK_DIR/mnt/sys"
 printf '%s\n' "$HOSTNAME_VAL" >"$WORK_DIR/mnt/etc/hostname"
 cat >"$WORK_DIR/mnt/etc/fstab" <<'EOF'
 LABEL=ARMBIAN_ROOT  /      ext4  defaults,noatime,nodiratime,commit=60,errors=remount-ro  0  1
-LABEL=ARMBIAN_BOOT  /boot  vfat  defaults,noatime                                          0  2
+LABEL=ARMBIANBOOT   /boot  vfat  defaults,noatime                                          0  2
 tmpfs               /tmp   tmpfs defaults,nosuid                                           0  0
 EOF
 

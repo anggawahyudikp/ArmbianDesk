@@ -62,7 +62,7 @@ mulai dari sesi Openbox super-ringan hingga tata letak panel atas dan dock bawah
 <h2 align="center">Flashdisk Bootable dalam Satu Perintah.</h2>
 
 <p align="center">
-Bangun image ARM64 dua-partisi (<code>ARMBIAN_BOOT</code> FAT32 + <code>ARMBIAN_ROOT</code> ext4) lengkap dengan<br/>
+Bangun image ARM64 dua-partisi (<code>ARMBIANBOOT</code> FAT32 + <code>ARMBIAN_ROOT</code> ext4) lengkap dengan<br/>
 <code>debootstrap</code>, kernel &amp; <code>u-boot.ext</code> donor, U-Boot autoscript, <code>zram</code> + <code>earlyoom</code>, dan ArmbianDesk siap pakai.
 </p>
 
