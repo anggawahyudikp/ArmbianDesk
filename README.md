@@ -63,11 +63,24 @@ Download the compressed bootable image for **Amlogic S905X (`p212` / B860H-style
 
 ### Step 3 — Plug Into Your TV Box & Boot
 
-1. Insert the flashed USB drive into a USB port on your TV box, connect HDMI + mouse/keyboard, and power it on (or hold the reset/AV pinhole button during power-on if your box requires a USB-boot trigger).
-2. ArmbianDesk automatically signs in as `deskuser` and launches the desktop + Chromium.
-3. Open a terminal and run `passwd` to change the default password (`deskuser`).
+1. Insert the flashed USB drive into **USB Port 0** on your TV box (try every USB port if unsure — stock bootloaders often check only Port 0).
+2. Connect HDMI + mouse/keyboard and power on the box.
+   - **Boxes that already booted Armbian before** usually detect the USB drive and start ArmbianDesk automatically.
+   - ArmbianDesk automatically signs in as `deskuser` and opens Chromium. Open a terminal and run `passwd` to change the default temporary password (`deskuser`).
 
-> **Stock B860H Android Firmware Note:** Some stock B860H revisions ignore USB drives unless USB-first boot is activated first. Read [docs/HARDWARE.md](docs/HARDWARE.md) and [tools/b860h-usb-prep/README.md](tools/b860h-usb-prep/README.md) before modifying any U-Boot environment block.
+### USB Drive Not Detected (Box Still Boots Stock Android)?
+
+Unlike a PC, factory-locked Amlogic/B860H TV boxes do not always check USB drives on normal power-on. Follow these steps in order — see [docs/USB_BOOT_GUIDE.md](docs/USB_BOOT_GUIDE.md) for the complete guide:
+
+1. **Try the Reset / AV Pinhole Button ("Toothpick Method"):**
+   Unplug power, insert the USB drive into **USB Port 0**, press and hold the internal **RESET / AV** pinhole button with a toothpick, plug in power while holding for **5–10 seconds**, then release.
+2. **Or trigger Update Mode via ADB (from Android):**
+   Enable *USB Debugging* on stock Android, connect from your PC (`adb connect <BOX_IP>:5555`), then run:
+   ```bash
+   adb reboot update
+   ```
+3. **For factory-locked ZTE B860H units that still skip USB:**
+   Enable USB-first boot in U-Boot (`/dev/block/env`) safely with backup + byte-for-byte `cmp` verification — full copy-paste steps in [docs/USB_BOOT_GUIDE.md](docs/USB_BOOT_GUIDE.md#method-3--enable-persistent-usb-first-boot-on-locked-zte-b860h-boxes-adb--root) and [tools/b860h-usb-prep/README.md](tools/b860h-usb-prep/README.md).
 
 ---
 
@@ -122,6 +135,6 @@ Keep RAM lean by default, or switch to a classic panel + auto-hide dock layout i
 
 ## Documentation &amp; Credits
 
-- **Guides:** [Hardware Support](docs/HARDWARE.md) · [Troubleshooting](docs/TROUBLESHOOTING.md) · [Image Builder](docs/IMAGE_BUILDER.md) · [Privacy](docs/PRIVACY.md) · [Test Report](TEST_REPORT.md)
+- **Guides:** [USB Boot Guide](docs/USB_BOOT_GUIDE.md) · [Hardware Support](docs/HARDWARE.md) · [Troubleshooting](docs/TROUBLESHOOTING.md) · [Image Builder](docs/IMAGE_BUILDER.md) · [Privacy](docs/PRIVACY.md) · [Test Report](TEST_REPORT.md)
 - **Contribute:** Bug reports, board boot reports, and pull requests are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md).
 - **License:** Original ArmbianDesk scripts, templates, and assets are licensed under the [MIT License](LICENSE). Bootable image releases also include Debian `bookworm` packages, Linux kernel, and U-Boot components under their upstream licenses (GPL-2.0 / GPL-2.0+ / BSD) — see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for source provenance.

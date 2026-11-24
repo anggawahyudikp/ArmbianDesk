@@ -63,11 +63,24 @@ Unduh image siap flash untuk **TV Box Amlogic S905X (`p212` / B860H 1 GB RAM)**:
 
 ### Langkah 3 — Colok ke STB & Boot
 
-1. Cabut flashdisk dari PC, colokkan ke port USB STB, pasang kabel HDMI + mouse/keyboard, lalu nyalakan STB (atau tekan tombol reset di lubang AV bila firmware STB butuh pemicu boot USB).
-2. ArmbianDesk otomatis masuk ke desktop sebagai `deskuser` dan membuka Chromium.
-3. Buka terminal lalu jalankan `passwd` untuk mengganti password bawaan (`deskuser`).
+1. Colokkan flashdisk ke **Port USB 0** STB (jika ragu, coba setiap port USB karena banyak bootloader bawaan hanya memeriksa Port 0).
+2. Hubungkan kabel HDMI + mouse/keyboard, lalu nyalakan STB.
+   - **STB yang sudah pernah menjalankan Armbian** biasanya langsung mendeteksi flashdisk dan masuk ke ArmbianDesk otomatis.
+   - ArmbianDesk otomatis masuk ke desktop sebagai `deskuser` dan membuka Chromium. Buka terminal lalu jalankan `passwd` untuk mengganti password sementara (`deskuser`).
 
-> **Catatan STB Android Bawaan (B860H):** Sebagian revisi firmware B860H mengabaikan USB kecuali fitur USB-first boot diaktifkan dulu. Baca [docs/HARDWARE.md](docs/HARDWARE.md) dan [tools/b860h-usb-prep/README.md](tools/b860h-usb-prep/README.md) sebelum mengubah variabel U-Boot eMMC.
+### Flashdisk Tidak Terdeteksi (Masih Masuk Android Bawaan)?
+
+Berbeda dengan PC, STB Amlogic/B860H bawaan pabrik tidak selalu memeriksa port USB saat menyala normal. Ikuti urutan ini — panduan lengkap tersedia di [docs/USB_BOOT_GUIDE.id.md](docs/USB_BOOT_GUIDE.id.md):
+
+1. **Pakai Tombol Reset / Lubang AV ("Metode Tusuk Gigi"):**
+   Cabut adaptor listrik STB, colok flashdisk ke **Port USB 0**, tekan dan tahan tombol kecil di dalam lubang **RESET / AV**, lalu colokkan listrik sambil tetap menahan **5–10 detik** sebelum dilepas.
+2. **Atau Picu Mode Update lewat ADB (dari Android):**
+   Aktifkan *USB Debugging* di Android STB, sambungkan PC (`adb connect <IP_STB>:5555`), lalu jalankan:
+   ```bash
+   adb reboot update
+   ```
+3. **Untuk B860H revisi terkunci yang tetap langsung masuk Android:**
+   Aktifkan USB-first boot di U-Boot (`/dev/block/env`) secara aman memakai backup asli + verifikasi baca-ulang `cmp` — ikuti perintah lengkap di [docs/USB_BOOT_GUIDE.id.md](docs/USB_BOOT_GUIDE.id.md#metode-3--aktifkan-usb-first-boot-permanen-di-b860h-terkunci-adb--root) dan [tools/b860h-usb-prep/README.md](tools/b860h-usb-prep/README.md).
 
 ---
 
@@ -122,6 +135,6 @@ Default super-ringan agar RAM 1 GB tetap lega, atau aktifkan tata letak panel at
 
 ## Dokumentasi &amp; Lisensi
 
-- **Panduan:** [Matriks Hardware](docs/HARDWARE.md) · [Troubleshooting](docs/TROUBLESHOOTING.md) · [Image Builder](docs/IMAGE_BUILDER.md) · [Privasi](docs/PRIVACY.md) · [Laporan Uji](TEST_REPORT.md)
+- **Panduan:** [Panduan Deteksi Boot USB](docs/USB_BOOT_GUIDE.id.md) · [Matriks Hardware](docs/HARDWARE.md) · [Troubleshooting](docs/TROUBLESHOOTING.md) · [Image Builder](docs/IMAGE_BUILDER.md) · [Privasi](docs/PRIVACY.md) · [Laporan Uji](TEST_REPORT.md)
 - **Kontribusi:** Laporan bug, hasil uji boot berbagai revisi STB, dan pull request sangat diterima. Lihat [CONTRIBUTING.md](CONTRIBUTING.md) dan [SECURITY.md](SECURITY.md).
 - **Lisensi:** Skrip, template, dan aset asli ArmbianDesk dirilis di bawah [Lisensi MIT](LICENSE). File image bootable yang dirilis turut menyertakan paket Debian `bookworm`, kernel Linux, dan U-Boot dengan lisensi upstream masing-masing (GPL-2.0 / GPL-2.0+ / BSD) — lihat detail sumber kode di [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
