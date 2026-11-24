@@ -18,3 +18,11 @@ ArmbianDesk does **not** bundle binary APT packages, proprietary wallpapers, ven
 | `debootstrap`, `qemu-user-static`, `u-boot-tools` | Host image build dependencies (build time only) | MIT / GPL-2.0+ |
 
 Optional user-supplied inputs to `armbiandesk-image build` (`--boot-source-image` or `--kernel-tar` / `--uboot-dir`) retain the licenses of their respective Linux kernel (GPL-2.0) and U-Boot (GPL-2.0+) upstream releases.
+
+## Prebuilt Bootable Release Image (`armbiandesk-b860h-minimal.img.xz`)
+
+When binary bootable USB release images are published in GitHub Releases, they combine:
+1. **Debian 12 (`bookworm`, `arm64`) Userland Packages:** Retrieved unmodified from `http://deb.debian.org/debian` (Debian Free Software Guidelines / GPL / MIT / BSD licenses; source packages are available from Debian archive mirrors via `apt-get source`).
+2. **Linux Kernel (`6.18.45-current-meson64`) & Amlogic DTBs (GPL-2.0):** Sourced from Armbian Community `26.11.0-trunk.19` (`aml-s9xx-box`), built via [`https://github.com/armbian/build`](https://github.com/armbian/build) (commit `fd4ebfd1e`).
+3. **Amlogic S905X Chainloader (`u-boot.ext`, GPL-2.0+):** Sourced from U-Boot (`https://gitlab.denx.de/u-boot/u-boot.git`, tag `v2020.07` `libretech-cc_defconfig`) with community Amlogic GXL patches documented at [`https://github.com/hexdump0815/u-boot-misc/blob/master/readme.gxl`](https://github.com/hexdump0815/u-boot-misc/blob/master/readme.gxl).
+4. **ArmbianDesk Session & Scripts (MIT):** Original scripts, templates, boot autoscripts (`s905_autoscript`, `aml_autoscript`, `extlinux.conf`), and graphics authored in this repository.
